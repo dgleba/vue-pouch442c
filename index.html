@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<!-- David Gleba 2019-02-18 -->
+<!-- originally: https://jsfiddle.net/seanodotcom/6es3ho9p/ -->
+
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>vue pouchdb dg 442c</title>
+
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="googlebot" content="noindex, nofollow" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.css"
+    />
+
+    <!-- <script type="text/javascript" src="/js/lib/dummy.js"></script> -->
+
+    <!--
+      <script src="https://cdn.jsdelivr.net/npm/vue/dist/1.0.0/vue.js"></script>
+    -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.0/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-strap/1.1.37/vue-strap.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pouchdb/7.0.0/pouchdb.min.js"></script>
+
+    <script src="index.js"></script>
+  </head>
+
+  <body>
+    xx2
+    <div id="app">
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+      <template id="pouchdb-open">
+        <div class="panel panel-default panel-body">
+          <div class="form-group">
+            <label for="dblocal">Local DB name</label>
+            <input
+              v-model="setting.db_local"
+              placeholder="Local DB name"
+              id="dblocal"
+              class="form-control"
+            />
+          </div>
+          <button @click="openlocdb">Open local DB</button>
+        </div>
+
+        <div class="panel panel-default panel-body">
+          <div class="form-group">
+            <label for="dburl">Remote DB URL</label>
+            <input
+              v-model="setting.db_url"
+              placeholder="Remote DB URL"
+              id="dburl"
+              class="form-control"
+            />
+            <label for="dbusername">Remote DB username</label>
+            <input
+              v-model="setting.db_username"
+              placeholder="Remote DB username"
+              id="dbusername"
+              class="form-control"
+            />
+            <label for="dbpassword">Remote DB password</label>
+            <input
+              v-model="setting.db_password"
+              placeholder="Remote DB password"
+              id="dbpassword"
+              class="form-control"
+            />
+          </div>
+          <button @click="openremdb">Open remote DB</button> or
+          <button @click="opendbs">Open both DBs with sync</button>
+        </div>
+        <div class="panel panel-default panel-body">
+          <div class="form-group">
+            <label for="secret">Secret passphrase</label>
+            <input
+              v-model="secret"
+              type="password"
+              placeholder="secret passphrase"
+              id="secret"
+              class="form-control"
+            />
+          </div>
+          <button @click="save">Save settings to browser</button>
+          <button @click="load">Load settings from browser</button>
+        </div>
+      </template>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+      <template id="gen-grid">
+        <table class="table table-bordered table-condensed">
+          <thead>
+            <tr>
+              <th
+                v-for="key in columns"
+                @click="sortBy(key)"
+                :class="{active: sortKey == key}"
+              >
+                {{key | capitalize}}
+                <span
+                  class="arrow"
+                  :class="sortOrders[key] > 0 ? 'asc' : 'dsc'"
+                >
+                </span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="
+        entry in data
+        | filterBy filterKey
+        | orderBy sortKey sortOrders[sortKey]"
+            >
+              <td v-for="key in columns">{{entry[key]}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </template>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+
+      <template id="gen-row">
+        <div class="panel panel-default panel-body">
+          <div class="form-group">
+            <template v-for="item in doc">
+              <label for="{{$key}}">{{$key}}</label>
+              <input
+                v-model="item"
+                placeholder="{{$key}}"
+                id="{{$key}}"
+                class="form-control"
+              />
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ -->
+      <tabs>
+        <tab header="Setup">
+          <pouchdb-open
+            :db1.sync="hS.db1"
+            :dbs.sync="hS.dbs"
+            @ready="dbReady"
+            @change="dbReady"
+          >
+          </pouchdb-open>
+        </tab>
+        <tab header="Rows(gengrid)">
+          <button @click="writeRow">Write Row</button>
+          <button @click="getRows">Get Rows</button>
+          <form id="search">
+            Filter <input name="filter" v-model="filterKey" />
+          </form>
+          <gen-grid
+            :data="gridData"
+            :columns="gridColumns"
+            :filter-key="filterKey"
+          >
+          </gen-grid>
+        </tab>
+        <tab header="aRow"> <gen-row :doc="gridData[0]"> </gen-row> </tab>
+      </tabs>
+    </div>
+  </body>
+</html>
